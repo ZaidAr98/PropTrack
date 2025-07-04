@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import bodyParser from "body-parser";
 import cors from 'cors';
+import adminRoute from './routes/adminRoute';
+import clientRoute from './routes/clientRoute';
 
 const app = express();
 const port = 8000;
@@ -10,6 +12,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 
+
+app.use('/api/admin',adminRoute)
+
+app.use('/api/client',clientRoute)
 
 app.use(cors())
 

@@ -1,19 +1,16 @@
-import { Document, Types } from 'mongoose';
+import { Document, Types } from "mongoose";
 
 export enum PropertyType {
-  SALE = 'sale',
-  RENT = 'rent'
+  SALE = "sale",
+  RENT = "rent",
 }
-
-
 
 export enum ViewingStatus {
-  SCHEDULED = 'scheduled',
-  COMPLETED = 'completed',
-  NO_SHOW = 'no_show'
+  SCHEDULED = "scheduled",
+  COMPLETED = "completed",
+  NO_SHOW = "no_show",
+  CANCELLED = "cancelled",
 }
-
-
 
 export interface IProperty extends Document {
   title: string;
@@ -30,7 +27,6 @@ export interface IProperty extends Document {
   updatedAt: Date;
 }
 
-
 export interface IClient extends Document {
   name: string;
   email: string;
@@ -38,7 +34,6 @@ export interface IClient extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
-
 
 export interface IViewing extends Document {
   propertyId: Types.ObjectId;
