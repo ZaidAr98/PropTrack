@@ -4,20 +4,25 @@ import { AddPropertyRequest } from "@/types/Property";
 import { TbPhotoUp } from "react-icons/tb";
 import { MdDelete } from "react-icons/md";
 
+// Extended type to match your main form
+type ExtendedPropertyInput = AddPropertyRequest & {
+  images?: File[];
+  imageUrls?: string[];
+};
+
 interface ImagePreview {
   url: string;
   file: File;
 }
 
-const ImagesSection: React.FC = () => {
+const ImageForm: React.FC = () => {
   const {
     setValue,
     formState: { errors },
     clearErrors,
-  } = useFormContext<AddPropertyRequest>();
+  } = useFormContext<ExtendedPropertyInput>();
 
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
-
   const [validationError, setValidationError] = useState<string>("");
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -28,7 +33,7 @@ const ImagesSection: React.FC = () => {
     let processedCount = 0;
     const newPreviews: ImagePreview[] = [];
 
-    // Validate file count before processing
+    
     const totalAfterUpload = imagePreviews.length + files.length;
     if (totalAfterUpload > 5) {
       setValidationError("Maximum 5 images allowed");
@@ -36,13 +41,13 @@ const ImagesSection: React.FC = () => {
     }
 
     files.forEach((file) => {
-      // Validate file type and size
+   
       if (!file.type.startsWith('image/')) {
         setValidationError("Only image files are allowed");
         return;
       }
       
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 5 * 1024 * 1024) { 
         setValidationError("Each image must be less than 5MB");
         return;
       }
@@ -62,16 +67,11 @@ const ImagesSection: React.FC = () => {
           const updatedPreviews = [...imagePreviews, ...newPreviews];
           setImagePreviews(updatedPreviews);
 
-          // Create FileList-like object for form submission
-          const dataTransfer = new DataTransfer();
-          updatedPreviews.forEach(preview => {
-            dataTransfer.items.add(preview.file);
-          });
-
-          // This sets the files for Multer to handle as req.files
-          setValue("images" as any, dataTransfer.files);
+          // Convert to File array for proper typing
+          const fileArray = updatedPreviews.map(preview => preview.file);
+          setValue("images", fileArray);
           setValidationError("");
-          clearErrors("images" as any);
+          clearErrors("images");
         }
       };
       reader.readAsDataURL(file);
@@ -80,8 +80,6 @@ const ImagesSection: React.FC = () => {
     // Reset the input
     e.target.value = "";
   };
-
-
 
   const handleDelete = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
@@ -93,13 +91,10 @@ const ImagesSection: React.FC = () => {
     setImagePreviews(updatedPreviews);
 
     // Update form with remaining files
-    const dataTransfer = new DataTransfer();
-    updatedPreviews.forEach(preview => {
-      dataTransfer.items.add(preview.file);
-    });
-    setValue("images" as any, dataTransfer.files);
+    const fileArray = updatedPreviews.map(preview => preview.file);
+    setValue("images", fileArray);
 
-    // Reset if needed
+    // Reset validation error if needed
     if (updatedPreviews.length >= 1) {
       setValidationError("");
     }
@@ -119,7 +114,7 @@ const ImagesSection: React.FC = () => {
   return (
     <div className="grid grid-cols-6 gap-4 w-full">
       <div className="col-start-1 col-end-2">
-        <label className="block mb-2 text-md font-medium text-gray-900 dark:text-white text-left text-lg">
+        <label className="block mb-2 text-md font-medium text-gray-900 dark:text-white text-left">
           Property Images
         </label>
       </div>
@@ -134,8 +129,6 @@ const ImagesSection: React.FC = () => {
                   alt="Property preview"
                   className="w-full h-full object-cover border-2 border-gray-400 rounded"
                 />
-
-
 
                 {/* Delete button */}
                 <button
@@ -176,7 +169,7 @@ const ImagesSection: React.FC = () => {
         </span>
       )}
 
-      {/* Image count display */}
+     
       <div className="col-start-4 col-end-6 text-sm text-gray-600 flex items-center">
         <span>
           {imagePreviews.length} image{imagePreviews.length !== 1 ? "s" : ""} selected
@@ -186,4 +179,4 @@ const ImagesSection: React.FC = () => {
   );
 };
 
-export default ImagesSection;
+export default ImageForm;

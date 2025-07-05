@@ -62,7 +62,11 @@ export const addProperty = async (req: MulterRequest, res: Response): Promise<vo
     const savedProperty = await Property.create(newProperty);
 
     
-    res.status(201).json(savedProperty);
+  res.status(201).json({
+      success: true,
+      message: "Property created successfully",
+      property: savedProperty
+    });
   } catch (error) {
     console.error("Error adding property:", error);
     res.status(500).json({ error: "Internal server error" });
