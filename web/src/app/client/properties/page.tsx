@@ -125,6 +125,14 @@ const PropertyPage = () => {
     ? (currentPagination?.totalCount || totalCount) 
     : (currentPagination?.totalCount || displayProperties.length);
 
+  // Safe pagination calculations
+  const currentPage = currentPagination?.currentPage || 1;
+  const limit = currentPagination?.limit || 12;
+  const totalCountSafe = currentPagination?.totalCount || displayProperties.length || 0;
+  
+  const startResult = totalCountSafe > 0 ? ((currentPage - 1) * limit) + 1 : 0;
+  const endResult = totalCountSafe > 0 ? Math.min(currentPage * limit, totalCountSafe) : 0;
+
   if (isLoadingState && displayProperties.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-64">
@@ -229,8 +237,8 @@ const PropertyPage = () => {
           <h1 className="text-3xl font-bold">Our Properties</h1>
           <p className="text-muted-foreground mt-1">
             {isSearchMode
-              ? `Found ${resultsCount} properties matching your criteria`
-              : `Discover our collection of ${resultsCount} properties`}
+              ? `Found ${resultsCount || 0} properties matching your criteria`
+              : `Discover our collection of ${resultsCount || 0} properties`}
           </p>
         </div>
         <Button
@@ -490,25 +498,24 @@ const PropertyPage = () => {
         ))}
       </div>
 
-      {/* Pagination */}
+      {/* Fixed Pagination */}
       {currentPagination && currentPagination.totalPages > 1 && (
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Showing {((currentPagination.currentPage - 1) * currentPagination.limit) + 1} to{" "}
-                {Math.min(
-                  currentPagination.currentPage * currentPagination.limit,
-                  currentPagination.totalCount
-                )}{" "}
-                of {currentPagination.totalCount} results
+                {totalCountSafe > 0 ? (
+                  <>Showing {startResult} to {endResult} of {totalCountSafe} results</>
+                ) : (
+                  <>No results to display</>
+                )}
               </div>
               
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handlePageChange(currentPagination.currentPage - 1)}
+                  onClick={() => handlePageChange(currentPage - 1)}
                   disabled={!currentPagination.hasPreviousPage || isLoadingState}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -519,11 +526,10 @@ const PropertyPage = () => {
                   {/* Page numbers */}
                   {Array.from({ length: currentPagination.totalPages }, (_, i) => i + 1)
                     .filter((page) => {
-                      const current = currentPagination.currentPage;
                       return (
                         page === 1 ||
                         page === currentPagination.totalPages ||
-                        (page >= current - 1 && page <= current + 1)
+                        (page >= currentPage - 1 && page <= currentPage + 1)
                       );
                     })
                     .map((page, index, array) => (
@@ -532,7 +538,7 @@ const PropertyPage = () => {
                           <span className="px-2 text-muted-foreground">...</span>
                         )}
                         <Button
-                          variant={page === currentPagination.currentPage ? "default" : "outline"}
+                          variant={page === currentPage ? "default" : "outline"}
                           size="sm"
                           onClick={() => handlePageChange(page)}
                           disabled={isLoadingState}
@@ -547,7 +553,7 @@ const PropertyPage = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handlePageChange(currentPagination.currentPage + 1)}
+                  onClick={() => handlePageChange(currentPage + 1)}
                   disabled={!currentPagination.hasNextPage || isLoadingState}
                 >
                   Next

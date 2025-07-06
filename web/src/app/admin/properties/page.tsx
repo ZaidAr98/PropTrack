@@ -2,7 +2,15 @@
 import usePropertyStore from "../../store/PropertyStore";
 import React, { useEffect, useState } from "react";
 import PropertyCard from "./components/PropertyCard";
-import { Loader2, RefreshCw, Search, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Loader2,
+  RefreshCw,
+  Search,
+  Filter,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,9 +129,9 @@ const PropertyPage = () => {
 
   const activeFiltersCount = Object.values(filters).filter(Boolean).length;
 
-  const resultsCount = isSearchMode 
-    ? (currentPagination?.totalCount || totalCount) 
-    : (currentPagination?.totalCount || displayProperties.length);
+  const resultsCount = isSearchMode
+    ? currentPagination?.totalCount || totalCount
+    : currentPagination?.totalCount || displayProperties.length;
 
   if (isLoadingState && displayProperties.length === 0) {
     return (
@@ -376,7 +384,9 @@ const PropertyPage = () => {
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Property Type</label>
+                <label className="text-sm font-medium mb-2 block">
+                  Property Type
+                </label>
                 <Select
                   value={filters.propertyType || "all"}
                   onValueChange={(value) =>
@@ -390,13 +400,14 @@ const PropertyPage = () => {
                     <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="sale">Sale</SelectItem>
                     <SelectItem value="rent">Rent</SelectItem>
-
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Bedrooms</label>
+                <label className="text-sm font-medium mb-2 block">
+                  Bedrooms
+                </label>
                 <Select
                   value={filters.bedrooms || "all"}
                   onValueChange={(value) =>
@@ -464,9 +475,7 @@ const PropertyPage = () => {
                     <SelectItem value="priceHighLow">
                       Price: High to Low
                     </SelectItem>
-                    <SelectItem value="newest">
-                      Newest First
-                    </SelectItem>
+                    <SelectItem value="newest">Newest First</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -491,72 +500,86 @@ const PropertyPage = () => {
       </div>
 
       {/* Pagination */}
-      {currentPagination && currentPagination.totalPages > 1 && (
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                Showing {((currentPagination.currentPage - 1) * currentPagination.limit) + 1} to{" "}
-                {Math.min(
-                  currentPagination.currentPage * currentPagination.limit,
-                  currentPagination.totalCount
-                )}{" "}
-                of {currentPagination.totalCount} results
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPagination.currentPage - 1)}
-                  disabled={!currentPagination.hasPreviousPage || isLoadingState}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-                
-                <div className="flex items-center gap-1">
-                  {/* Page numbers */}
-                  {Array.from({ length: currentPagination.totalPages }, (_, i) => i + 1)
-                    .filter((page) => {
-                      const current = currentPagination.currentPage;
-                      return (
-                        page === 1 ||
-                        page === currentPagination.totalPages ||
-                        (page >= current - 1 && page <= current + 1)
-                      );
-                    })
-                    .map((page, index, array) => (
-                      <React.Fragment key={page}>
-                        {index > 0 && array[index - 1] !== page - 1 && (
-                          <span className="px-2 text-muted-foreground">...</span>
-                        )}
-                        <Button
-                          variant={page === currentPagination.currentPage ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handlePageChange(page)}
-                          disabled={isLoadingState}
-                          className="w-8 h-8 p-0"
-                        >
-                          {page}
-                        </Button>
-                      </React.Fragment>
-                    ))}
-                </div>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPagination.currentPage + 1)}
-                  disabled={!currentPagination.hasNextPage || isLoadingState}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    {currentPagination && currentPagination.totalPages > 1 && (
+  <Card>
+    <CardContent className="py-4">
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          {(() => {
+            const currentPage = currentPagination.currentPage || 1;
+            const limit = currentPagination.limit || 12;
+            // Use the total count from pagination, but fall back to resultsCount which should be the total
+            const totalCount = currentPagination.totalCount || resultsCount || 0;
+            const currentPageItemCount = displayProperties.length;
+            
+            if (totalCount === 0) {
+              return "No results";
+            }
+            
+            const fromItem = ((currentPage - 1) * limit) + 1;
+            // For the last page, show the actual number of items displayed
+            const toItem = currentPage === currentPagination.totalPages 
+              ? fromItem + currentPageItemCount - 1
+              : Math.min(currentPage * limit, totalCount);
+            
+            return `Showing ${fromItem} to ${toItem} of ${totalCount} results`;
+          })()}
+        </div>
+                       
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange((currentPagination.currentPage || 1) - 1)}
+            disabled={!currentPagination.hasPreviousPage || isLoadingState}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+                         
+          <div className="flex items-center gap-1">
+            {/* Page numbers */}
+            {Array.from({ length: currentPagination.totalPages || 1 }, (_, i) => i + 1)
+              .filter((page) => {
+                const current = currentPagination.currentPage || 1;
+                const totalPages = currentPagination.totalPages || 1;
+                return (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= current - 1 && page <= current + 1)
+                );
+              })
+              .map((page, index, array) => (
+                <React.Fragment key={page}>
+                  {index > 0 && array[index - 1] !== page - 1 && (
+                    <span className="px-2 text-muted-foreground">...</span>
+                  )}
+                  <Button
+                    variant={page === (currentPagination.currentPage || 1) ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(page)}
+                    disabled={isLoadingState}
+                    className="w-8 h-8 p-0"
+                  >
+                    {page}
+                  </Button>
+                </React.Fragment>
+              ))}
+          </div>
+                         
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange((currentPagination.currentPage || 1) + 1)}
+            disabled={!currentPagination.hasNextPage || isLoadingState}
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
       )}
     </div>
   );

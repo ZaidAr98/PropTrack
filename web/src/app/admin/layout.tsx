@@ -15,7 +15,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           <div className="flex justify-between items-center h-16">
             {/* Logo/Brand */}
             <div className="flex items-center">
-              <Link href="/admin" className="text-xl font-bold text-gray-900">
+              <Link href="/admin/properties" className="text-xl font-bold text-gray-900">
                 Admin Panel
               </Link>
             </div>
