@@ -1,7 +1,18 @@
 "use client";
 import useClientStore from "../../store/ClientStore";
 import React, { useEffect, useState } from "react";
-import { Loader2, RefreshCw, Search, Trash2, Eye, ChevronLeft, ChevronRight, Users, UserPlus, Calendar, Link } from "lucide-react";
+import {
+  Loader2,
+  RefreshCw,
+  Search,
+  Trash2,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  UserPlus,
+  Calendar,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import Link from "next/link";
 
 const ClientListPage = () => {
   const {
@@ -92,7 +104,11 @@ const ClientListPage = () => {
   };
 
   const handleDeleteClient = async (clientId: string, clientName: string) => {
-    if (window.confirm(`Are you sure you want to delete ${clientName}? This action cannot be undone.`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${clientName}? This action cannot be undone.`
+      )
+    ) {
       try {
         await deleteClient(clientId);
       } catch (error) {
@@ -102,12 +118,12 @@ const ClientListPage = () => {
   };
 
   const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -147,7 +163,9 @@ const ClientListPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Clients
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -165,7 +183,9 @@ const ClientListPage = () => {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Last 30 Days</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Last 30 Days
+              </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -249,21 +269,17 @@ const ClientListPage = () => {
                     <TableCell>{formatDate(client.createdAt)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <Link href={`/admin/client-management/${client._id}`}>
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            <Link href={`/admin/client-management/${client._id}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClient(client._id, client.name)}
+                          onClick={() =>
+                            handleDeleteClient(client._id, client.name)
+                          }
                           disabled={isDeleting}
                           className="text-red-600 hover:text-red-800"
                         >
@@ -278,7 +294,9 @@ const ClientListPage = () => {
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
-                {hasSearched ? "No clients found matching your search." : "No clients registered yet."}
+                {hasSearched
+                  ? "No clients found matching your search."
+                  : "No clients registered yet."}
               </p>
             </div>
           )}
@@ -291,11 +309,14 @@ const ClientListPage = () => {
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to{" "}
-                {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)}{" "}
+                Showing {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
+                {Math.min(
+                  pagination.currentPage * pagination.limit,
+                  pagination.totalCount
+                )}{" "}
                 of {pagination.totalCount} clients
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -306,9 +327,12 @@ const ClientListPage = () => {
                   <ChevronLeft className="h-4 w-4" />
                   Previous
                 </Button>
-                
+
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                  {Array.from(
+                    { length: pagination.totalPages },
+                    (_, i) => i + 1
+                  )
                     .filter((page) => {
                       const current = pagination.currentPage;
                       return (
@@ -320,10 +344,16 @@ const ClientListPage = () => {
                     .map((page, index, array) => (
                       <React.Fragment key={page}>
                         {index > 0 && array[index - 1] !== page - 1 && (
-                          <span className="px-2 text-muted-foreground">...</span>
+                          <span className="px-2 text-muted-foreground">
+                            ...
+                          </span>
                         )}
                         <Button
-                          variant={page === pagination.currentPage ? "default" : "outline"}
+                          variant={
+                            page === pagination.currentPage
+                              ? "default"
+                              : "outline"
+                          }
                           size="sm"
                           onClick={() => handlePageChange(page)}
                           disabled={isLoadingState}
@@ -334,7 +364,7 @@ const ClientListPage = () => {
                       </React.Fragment>
                     ))}
                 </div>
-                
+
                 <Button
                   variant="outline"
                   size="sm"

@@ -47,7 +47,7 @@ const ClientDetailPage = ({ id }: ClientDetailPageProps) => {
     if (window.confirm(`Are you sure you want to delete ${client.name}? This action cannot be undone.`)) {
       try {
         await deleteClient(client._id);
-        router.push('/admin/clients');
+        router.push('/admin/client-management');
       } catch (error) {
         console.error("Error deleting client:", error);
       }

@@ -46,6 +46,10 @@ export const scheduleViewing = async (
       return;
     }
 
+
+
+    
+
     const existingViewing = await Viewing.findOne({
       propertyId: propertyId,
       date: viewingDate,
@@ -80,6 +84,28 @@ export const scheduleViewing = async (
     });
   } catch (error) {
     console.error("Error scheduling viewing:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+// Add this to your view.controller.ts file
+export const getAllViewings = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const viewings = await Viewing.find({})
+      .populate("clientId", "name email phone")
+      .populate("propertyId", "title location price type")
+      .sort({ date: 1, time: 1 });
+
+    res.status(200).json({
+      message: "Viewings retrieved successfully",
+      viewings: viewings,
+    });
+  } catch (error) {
+    console.error("Error fetching viewings:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };

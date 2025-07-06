@@ -1,9 +1,10 @@
 import { upload } from "../config/multerConfig";
 import { addProperty, archiveProperty, deleteProperty, editProperty, getClientInquiries } from "../controllers/admin/property.controller";
-import { addViewingNotes, cancelViewing, markViewingAsCompleted, markViewingAsNoShow, scheduleViewing } from "../controllers/admin/view.controller";
+import { addViewingNotes, cancelViewing, getAllViewings, markViewingAsCompleted, markViewingAsNoShow, scheduleViewing } from "../controllers/admin/view.controller";
 import express from "express";
 import { getProperties, getPropertyDetails, filterProperties } from "../controllers/public/property.controller";
 import { getClients, getClientStats, getClientById, deleteClient } from "../controllers/admin/clientManagment.controller";
+import { deleteInquiry } from "../controllers/admin/inquiries.controller";
 
 
 
@@ -37,7 +38,8 @@ router.get('/admin/properties/:id', getPropertyDetails);
 
 // POST - Schedule new viewing
 router.post('/admin/viewings', scheduleViewing);
-
+// GET - Get all viewings
+router.get('/admin/viewings', getAllViewings);
 // PUT - Update viewing status
 router.put('/admin/viewings/:id/complete', markViewingAsCompleted);
 router.put('/admin/viewings/:id/no-show', markViewingAsNoShow);
@@ -58,9 +60,12 @@ router.delete('/admin/clients/:id', deleteClient);
 
 
 
-
-// Get client inquiries
+//admin inquiries routes
+// GET /admin/inquiries - Get all client inquiries (Admin view)
 router.get('/admin/inquiries', getClientInquiries);
+
+// DELETE /admin/inquiries/:id - Delete inquiry (Admin only)
+router.delete('/admin/inquiries/:id', deleteInquiry);
 
 
 export default router;
