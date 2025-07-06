@@ -27,7 +27,7 @@ const ClientLayout = ({ children }: ClientLayoutProps) => {
 
               {/* Switch to Admin Side */}
               <Link
-                href="/admin"
+                href="/admin/properties"
                 className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
               >
                 <svg

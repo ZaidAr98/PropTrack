@@ -112,8 +112,8 @@ const useInquiryStore = create<InquiryState>()((set, get) => ({
     set({ isSubmitting: true, error: null, success: null });
 
     try {
-      const response = await api.post("/inquiries", inquiryData);
-      
+      const response = await api.post("/client/inquiries", inquiryData);
+
       set({
         isSubmitting: false,
         success: "Thank you! Your inquiry has been submitted successfully. We'll contact you soon.",

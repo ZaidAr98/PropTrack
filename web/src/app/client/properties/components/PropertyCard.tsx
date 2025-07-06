@@ -37,7 +37,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   };
 
   return (
-    <Link href={`/admin/property/${property._id}`}>
+    <Link href={`/client/property/${property._id}`}>
       <Card className="w-80 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
         <CardHeader className="p-0">
           <div className="relative h-48 w-full group">

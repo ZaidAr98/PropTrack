@@ -18,7 +18,7 @@ router.get('/client/properties/:id', getPropertyDetails);
 router.get('/client/properties/search', filterProperties);
 
 
-
+router.post('/client/inquiries', submitInquiry);
 
 
 export default router;
