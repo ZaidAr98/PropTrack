@@ -1,10 +1,11 @@
-// First, fix the import path in DetailPropertyPage.tsx
+
 "use client";
 import usePropertyStore from "../../../store/PropertyStore"; // Fixed import path
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Pencil, Trash, ChevronLeft, ChevronRight, MapPin, Bed, Bath, Square } from "lucide-react";
 import InquiryDialog from "./InquiryDialog"; // Updated import name
+import SimpleMap from "../components/map/SimpleMap"; // Simple map component
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
@@ -222,13 +223,24 @@ export default function DetailPropertyPage({ id }: { id: string }) {
             </div>
           )}
 
+          {/* Location Map */}
+          <div>
+            <h3 className="font-semibold text-lg mb-3">Location</h3>
+            <SimpleMap property={property} />
+          </div>
+
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             {/* Inquiry Dialog Button */}
             <InquiryDialog propertyId={property._id} />
             
-     
-            
+            {/* Edit Property Button */}
+            <Link href={`/admin/property/${property._id}/update-property`} className="flex-1">
+              <button className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
+                <Pencil size={20} />
+                Edit Property
+              </button>
+            </Link>
           </div>
         </div>
       </div>
