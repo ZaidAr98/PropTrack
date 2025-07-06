@@ -3,6 +3,7 @@ import { addProperty, archiveProperty, deleteProperty, editProperty, getClientIn
 import { addViewingNotes, cancelViewing, markViewingAsCompleted, markViewingAsNoShow, scheduleViewing } from "../controllers/admin/view.controller";
 import express from "express";
 import { getProperties, getPropertyDetails, filterProperties } from "../controllers/public/property.controller";
+import { getClients, getClientStats, getClientById, deleteClient } from "../controllers/admin/clientManagment.controller";
 
 
 
@@ -44,6 +45,17 @@ router.put('/admin/viewings/:id/cancel', cancelViewing);
 
 // PUT - Add notes
 router.put('/admin/viewings/:id/notes', addViewingNotes);
+
+
+
+
+
+// Client management routes
+router.get('/admin/clients', getClients);
+router.get('/admin/clients/stats', getClientStats);
+router.get('/admin/clients/:id', getClientById);
+router.delete('/admin/clients/:id', deleteClient);
+
 
 
 

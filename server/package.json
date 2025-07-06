@@ -5,7 +5,8 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts",
-    "seed": "tsx src/seeder/seeder.ts"
+    "seedProperty": "tsx src/seeder/property.ts",
+    "seedClient": "tsx src/seeder/client.ts"
   },
   "dependencies": {
     "body-parser": "^2.2.0",
