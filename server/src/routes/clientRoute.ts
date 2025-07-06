@@ -5,6 +5,9 @@ import { filterProperties, getProperties, getPropertyDetails } from '../controll
 
 const router = express.Router();
 
+
+// router.post('/inquiries', submitInquiry);
+
 // Get all properties 
 router.get('/client/properties', getProperties);
 
@@ -15,7 +18,7 @@ router.get('/client/properties/:id', getPropertyDetails);
 router.get('/client/properties/search', filterProperties);
 
 
-router.post('/inquiries', submitInquiry);
+
 
 
 export default router;

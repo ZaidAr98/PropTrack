@@ -61,10 +61,7 @@ router.delete('/admin/clients/:id', deleteClient);
 
 
 //admin inquiries routes
-// GET /admin/inquiries - Get all client inquiries (Admin view)
 router.get('/admin/inquiries', getClientInquiries);
-
-// DELETE /admin/inquiries/:id - Delete inquiry (Admin only)
 router.delete('/admin/inquiries/:id', deleteInquiry);
 
 
