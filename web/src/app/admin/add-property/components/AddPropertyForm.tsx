@@ -5,6 +5,7 @@ import MainForm from "./MainForm";
 import { FormProvider, useForm } from "react-hook-form";
 import { AddPropertyRequest } from "@/types/Property";
 import usePropertyStore from "../../../store/PropertyStore"; 
+import { useRouter } from "next/navigation"; // Changed import
 
 type ExtendedPropertyInput = AddPropertyRequest & {
   images?: File[];
@@ -12,6 +13,7 @@ type ExtendedPropertyInput = AddPropertyRequest & {
 };
 
 const AddPropertyForm = () => {
+  const router = useRouter(); // Fixed router usage
   const formMethods = useForm<ExtendedPropertyInput>();
   const { addProperty, isSubmitting, error, success, clearMessages } = usePropertyStore();
 
@@ -24,15 +26,18 @@ const AddPropertyForm = () => {
       const timer = setTimeout(() => {
         clearMessages();
         formMethods.reset();
-      }, 3000);
+        // Navigate after successful submission
+        router.push('/admin/properties'); // or wherever you want to redirect
+      }, 2000); // Reduced timeout to 2 seconds for better UX
       return () => clearTimeout(timer);
     }
-  }, [success, clearMessages, formMethods]);
+  }, [success, clearMessages, formMethods, router]);
 
   const onSubmit = async (data: ExtendedPropertyInput) => {
     try {
       await addProperty(data);
       console.log("Property added successfully!");
+      // Navigation will happen in the useEffect above when success is true
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -65,7 +70,17 @@ const AddPropertyForm = () => {
           </div>
         </div>
         
-        <div className="flex justify-end p-20 pt-0">
+        <div className="flex justify-end p-20 pt-0 gap-4">
+          {/* Cancel Button */}
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={isSubmitting}
@@ -81,10 +96,10 @@ const AddPropertyForm = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Submitting...
+                Adding Property...
               </span>
             ) : (
-              'Submit'
+              'Add Property'
             )}
           </button>
         </div>

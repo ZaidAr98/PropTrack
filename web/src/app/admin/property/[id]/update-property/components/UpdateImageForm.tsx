@@ -14,6 +14,7 @@ type ImagePreview = {
   url: string;
   file?: File;
   isExisting: boolean;
+  id: string; // Add unique ID for better tracking
 };
 
 const UpdateImageForm = () => {
@@ -45,23 +46,28 @@ const UpdateImageForm = () => {
     console.log("Updating form values:", {
       existingImages: existingImages.length,
       newImages: newImages.length,
-      totalPreviews: previews.length
+      totalPreviews: previews.length,
+      existingImageUrls: existingImages
     });
 
     // Update form values to match backend expectations
-    setValue("existingImages", existingImages);
-    setValue("images", newImages);
+    setValue("existingImages", existingImages, { shouldDirty: true });
+    setValue("images", newImages, { shouldDirty: true });
   }, [setValue]);
 
   // Initialize images when form loads - ONLY ONCE
   useEffect(() => {
     if (watchedExistingImages.length > 0 && !isInitialized) {
       console.log("Initializing with existing images:", watchedExistingImages);
-      const existingPreviews: ImagePreview[] = watchedExistingImages.map((url: string) => ({
+      const existingPreviews: ImagePreview[] = watchedExistingImages.map((url: string, index: number) => ({
         url,
         isExisting: true,
+        id: `existing-${index}-${Date.now()}`, // Unique ID
       }));
       setImagePreviews(existingPreviews);
+      setIsInitialized(true);
+    } else if (watchedExistingImages.length === 0 && !isInitialized) {
+      // Handle case where there are no existing images
       setIsInitialized(true);
     }
   }, [watchedExistingImages, isInitialized]);
@@ -89,7 +95,7 @@ const UpdateImageForm = () => {
     let processedCount = 0;
     const newPreviews: ImagePreview[] = [];
 
-    files.forEach((file) => {
+    files.forEach((file, index) => {
       // Validate file type and size
       if (!file.type.startsWith('image/')) {
         setValidationError("Only image files are allowed");
@@ -108,6 +114,7 @@ const UpdateImageForm = () => {
           url: result,
           file: file,
           isExisting: false,
+          id: `new-${Date.now()}-${index}`, // Unique ID
         });
         
         processedCount++;
@@ -126,9 +133,19 @@ const UpdateImageForm = () => {
     e.target.value = "";
   };
 
-  const handleDeleteImage = (index: number) => {
-    console.log("Deleting image at index:", index);
-    setImagePreviews(prevPreviews => prevPreviews.filter((_, i) => i !== index));
+  const handleDeleteImage = (indexToDelete: number) => {
+    console.log("Deleting image at index:", indexToDelete);
+    const imageToDelete = imagePreviews[indexToDelete];
+    console.log("Image being deleted:", { 
+      isExisting: imageToDelete?.isExisting, 
+      url: imageToDelete?.url?.slice(-30) 
+    });
+    
+    setImagePreviews(prevPreviews => {
+      const newPreviews = prevPreviews.filter((_, i) => i !== indexToDelete);
+      console.log("New previews after deletion:", newPreviews.length);
+      return newPreviews;
+    });
     
     // Reset validation error if we're under the limit
     setValidationError("");
@@ -157,7 +174,7 @@ const UpdateImageForm = () => {
         {imagePreviews.length > 0 ? (
           <div className="grid grid-cols-3 gap-8 px-10 py-5 h-full overflow-y-auto">
             {imagePreviews.map((preview, index) => (
-              <div key={`${preview.isExisting ? 'existing' : 'new'}-${index}-${preview.url.slice(-10)}`} className="relative group h-48">
+              <div key={preview.id} className="relative group h-48">
                 <img
                   src={preview.url}
                   alt="Property preview"
@@ -247,6 +264,7 @@ const UpdateImageForm = () => {
       {process.env.NODE_ENV === 'development' && (
         <div className="col-start-1 col-end-6 text-xs text-gray-400 border-t pt-2">
           <p>Debug: Previews: {imagePreviews.length}, Existing: {imagePreviews.filter(p => p.isExisting).length}, New: {imagePreviews.filter(p => !p.isExisting).length}</p>
+          <p>Form Values - Existing: {watchedExistingImages.length}, New: {watchedImages.length}</p>
         </div>
       )}
     </div>

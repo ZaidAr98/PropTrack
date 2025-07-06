@@ -119,7 +119,7 @@ const UpdatePropertyForm = ({ id }: { id: string }) => {
           <p className="text-gray-600 mt-2">Edit the property details below</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 p-20">
+        <div className="grid grid-cols-1 gap-4 p-20">
           <div className="col-span-2">
             <UpdateImageForm />
           </div>

@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, Clock, User, Plus, MessageSquare, CheckCircle, XCircle, AlertCircle, MapPin, DollarSign, Loader2 } from 'lucide-react';
 import useViewingStore from '../../store/ViewStore';
+import usePropertyStore from '../../store/PropertyStore';
+import useClientStore from '../../store/ClientStore'; // Assuming you have a client store
 
 // TypeScript interfaces
 export interface ViewingResponse {
@@ -50,40 +52,6 @@ interface PropertyData {
   type: string;
 }
 
-// Your real client data
-const clients: ClientData[] = [
-  { _id: "686a056bbed0346ae7a66c90", name: "Michael Brown", email: "michael.brown@outlook.com", phone: "+1 (555) 345-6789" },
-  { _id: "686a056bbed0346ae7a66c91", name: "Emily Davis", email: "emily.davis@gmail.com", phone: "+1 (555) 456-7890" },
-  { _id: "686a056bbed0346ae7a66c92", name: "David Wilson", email: "david.wilson@hotmail.com", phone: "+1 (555) 567-8901" },
-  { _id: "686a056bbed0346ae7a66c93", name: "Jessica Miller", email: "jessica.miller@gmail.com", phone: "+1 (555) 678-9012" },
-  { _id: "686a056bbed0346ae7a66c94", name: "Robert Garcia", email: "robert.garcia@yahoo.com", phone: "+1 (555) 789-0123" },
-  { _id: "686a056bbed0346ae7a66c95", name: "Ashley Martinez", email: "ashley.martinez@outlook.com", phone: "+1 (555) 890-1234" },
-  { _id: "686a056bbed0346ae7a66c96", name: "Christopher Lee", email: "christopher.lee@gmail.com", phone: "+1 (555) 901-2345" },
-  { _id: "686a056bbed0346ae7a66c97", name: "Amanda Taylor", email: "amanda.taylor@hotmail.com", phone: "+1 (555) 012-3456" },
-  { _id: "686a056bbed0346ae7a66c98", name: "Matthew Anderson", email: "matthew.anderson@gmail.com", phone: "+1 (555) 123-7890" },
-  { _id: "686a056bbed0346ae7a66c99", name: "Jennifer White", email: "jennifer.white@yahoo.com", phone: "+1 (555) 234-8901" },
-  { _id: "686a056bbed0346ae7a66c9a", name: "Daniel Thompson", email: "daniel.thompson@outlook.com", phone: "+1 (555) 345-9012" },
-  { _id: "686a056bbed0346ae7a66c9b", name: "Lisa Rodriguez", email: "lisa.rodriguez@gmail.com", phone: "+1 (555) 456-0123" },
-  { _id: "686a056bbed0346ae7a66c9c", name: "James Clark", email: "james.clark@hotmail.com", phone: "+1 (555) 567-1234" },
-  { _id: "686a056bbed0346ae7a66c9d", name: "Maria Gonzalez", email: "maria.gonzalez@gmail.com", phone: "+1 (555) 678-2345" },
-  { _id: "686a056bbed0346ae7a66c9e", name: "Ryan Harris", email: "ryan.harris@yahoo.com", phone: "+1 (555) 789-3456" },
-  { _id: "686a056bbed0346ae7a66c9f", name: "Nicole Lewis", email: "nicole.lewis@outlook.com", phone: "+1 (555) 890-4567" },
-  { _id: "686a056bbed0346ae7a66ca0", name: "Kevin Walker", email: "kevin.walker@gmail.com", phone: "+1 (555) 901-5678" },
-  { _id: "686a056bbed0346ae7a66ca1", name: "Rachel Hall", email: "rachel.hall@hotmail.com", phone: "+1 (555) 012-6789" }
-];
-
-// Your real property data
-const properties: PropertyData[] = [
-  { _id: "686969b7978d5966cc418ebf", title: "Luxury Penthouse Condo", location: "Upper East Side, NYC", price: 1200000, type: "sale" },
-  { _id: "686969b7978d5966cc418ec0", title: "Cozy Studio Apartment", location: "Greenwich Village, NYC", price: 2200, type: "rent" },
-  { _id: "686969b7978d5966cc418ec1", title: "Spacious Townhouse", location: "Park Slope, Brooklyn", price: 950000, type: "sale" },
-  { _id: "686969b7978d5966cc418ec2", title: "Contemporary Waterfront Villa", location: "The Hamptons, NY", price: 8500, type: "rent" },
-  { _id: "686969b7978d5966cc418ec3", title: "Industrial Loft Conversion", location: "SOHO, NYC", price: 680000, type: "sale" },
-  { _id: "686969b7978d5966cc418ec4", title: "Garden Level Apartment", location: "Astoria, Queens", price: 2800, type: "rent" },
-  { _id: "686969b7978d5966cc418ec5", title: "Historic Brownstone", location: "Upper West Side, NYC", price: 1850000, type: "sale" },
-  { _id: "686969b7978d5966cc418ec6", title: "Modern High-Rise Condo", location: "Long Island City, Queens", price: 4200, type: "rent" }
-];
-
 const ViewingManagement: React.FC = () => {
   const {
     viewings,
@@ -100,6 +68,19 @@ const ViewingManagement: React.FC = () => {
     clearMessages,
   } = useViewingStore();
 
+  // Store hooks for fetching data
+  const { 
+    properties, 
+    getProperties, 
+    isLoading: propertiesLoading 
+  } = usePropertyStore();
+  
+  const { 
+    clients, 
+    getClients, 
+    isLoading: clientsLoading 
+  } = useClientStore();
+
   const [showForm, setShowForm] = useState<boolean>(false);
   const [showNotes, setShowNotes] = useState<boolean>(false);
   const [selectedViewing, setSelectedViewing] = useState<ViewingResponse | null>(null);
@@ -114,8 +95,11 @@ const ViewingManagement: React.FC = () => {
     notes: ''
   });
 
+  // Fetch all data on component mount
   useEffect(() => {
     getViewings();
+    getProperties(); // Fetch all properties
+    getClients(); // Fetch all clients
   }, []);
 
   useEffect(() => {
@@ -221,11 +205,14 @@ const ViewingManagement: React.FC = () => {
     noShow: viewings.filter((v: ViewingResponse) => v.status === 'no_show').length
   };
 
-  if (isLoading) {
+  // Loading state for initial data fetch
+  const isInitialLoading = isLoading || propertiesLoading || clientsLoading;
+
+  if (isInitialLoading) {
     return (
       <div className="flex items-center justify-center min-h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading viewings...</span>
+        <span className="ml-2">Loading viewings data...</span>
       </div>
     );
   }

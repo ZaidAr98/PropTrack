@@ -15,7 +15,7 @@ const ClientLayout = ({ children }: ClientLayoutProps) => {
           <div className="flex justify-between items-center h-16">
             {/* Logo/Brand */}
             <div className="flex items-center">
-              <Link href="/client/properties" className="text-xl font-bold text-gray-900">
+              <Link href="/" className="text-xl font-bold text-gray-900">
                 Property Portal
               </Link>
             </div>

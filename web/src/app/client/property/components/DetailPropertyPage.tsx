@@ -234,13 +234,7 @@ export default function DetailPropertyPage({ id }: { id: string }) {
             {/* Inquiry Dialog Button */}
             <InquiryDialog propertyId={property._id} />
             
-            {/* Edit Property Button */}
-            <Link href={`/admin/property/${property._id}/update-property`} className="flex-1">
-              <button className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
-                <Pencil size={20} />
-                Edit Property
-              </button>
-            </Link>
+           
           </div>
         </div>
       </div>

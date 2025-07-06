@@ -80,44 +80,38 @@ export const filterProperties = async (req: Request, res: Response): Promise<voi
       minArea,
       maxArea,
       amenities,
-      search
+      search,
+      sort // Add sort parameter
     } = req.query;
 
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
 
-   
     const query: any = {};
 
- 
     if (minPrice || maxPrice) {
       query.price = {};
       if (minPrice) query.price.$gte = Number(minPrice);
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-
     if (location) {
       query.location = { $regex: location, $options: 'i' };
     }
 
-    
     if (type) {
       query.type = type;
     }
 
-  
     if (bedrooms) {
       query.bedrooms = Number(bedrooms);
     }
 
-  
     if (bathrooms) {
       query.bathrooms = Number(bathrooms);
     }
 
-   
     if (minArea || maxArea) {
       query.area = {};
       if (minArea) query.area.$gte = Number(minArea);
@@ -129,16 +123,42 @@ export const filterProperties = async (req: Request, res: Response): Promise<voi
       query.amenities = { $in: amenitiesArray };
     }
 
-    
     if (search) {
       query.$text = { $search: search as string };
     }
 
-   
+    // Handle sorting
+    let sortOption: any = { createdAt: -1 }; // Default sort by newest
+
+    if (sort) {
+      switch (sort) {
+        case 'priceLowHigh':
+          sortOption = { price: 1 };
+          break;
+        case 'priceHighLow':
+          sortOption = { price: -1 };
+          break;
+        case 'newest':
+          sortOption = { createdAt: -1 };
+          break;
+        case 'oldest':
+          sortOption = { createdAt: 1 };
+          break;
+        case 'areaLowHigh':
+          sortOption = { area: 1 };
+          break;
+        case 'areaHighLow':
+          sortOption = { area: -1 };
+          break;
+        default:
+          sortOption = { createdAt: -1 };
+      }
+    }
+
     const properties = await Property.find(query)
       .skip(skip)
       .limit(limitNum)
-      .sort({ createdAt: -1 });
+      .sort(sortOption); // Apply the sort option
 
     const total = await Property.countDocuments(query);
 
@@ -154,14 +174,17 @@ export const filterProperties = async (req: Request, res: Response): Promise<voi
         minArea,
         maxArea,
         amenities,
-        search
+        search,
+        sort 
       },
       pagination: {
         currentPage: pageNum,
         totalPages: Math.ceil(total / limitNum),
-        totalProperties: total,
+        totalCount: total, 
+        limit: limitNum,
         hasNextPage: pageNum < Math.ceil(total / limitNum),
-        hasPrevPage: pageNum > 1
+        hasPrevPage: pageNum > 1,
+        hasPreviousPage: pageNum > 1 
       }
     });
   } catch (error) {
@@ -169,4 +192,3 @@ export const filterProperties = async (req: Request, res: Response): Promise<voi
     res.status(500).json({ error: "Internal server error" });
   }
 };
-

@@ -2,8 +2,10 @@ import { create } from "zustand";
 import axios from "axios";
 import { AddPropertyRequest, PropertyResponse } from "../../types/Property";
 
+// Updated type to include existingImages
 type ExtendedPropertyInput = AddPropertyRequest & {
   images?: File[];
+  existingImages?: string[]; // Add this line
 };
 
 interface PropertyFilters {
@@ -243,21 +245,44 @@ const usePropertyStore = create<PropertyState>()((set, get) => ({
     try {
       const formData = new FormData();
 
-      // Add images
-      if (propertyData.images) {
+      // Add existing images as a JSON string
+      if (propertyData.existingImages && propertyData.existingImages.length > 0) {
+        formData.append("existingImages", JSON.stringify(propertyData.existingImages));
+      } else {
+        formData.append("existingImages", JSON.stringify([]));
+      }
+
+      // Add new image files
+      if (propertyData.images && propertyData.images.length > 0) {
         propertyData.images.forEach((file) => {
           formData.append("images", file);
         });
       }
 
-      // Add other fields
+      // Add other property fields
       Object.entries(propertyData).forEach(([key, value]) => {
-        if (key !== "images" && value != null) {
-          formData.append(key, String(value));
+        if (key !== "images" && key !== "existingImages" && value != null) {
+          // Handle arrays properly
+          if (Array.isArray(value)) {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, String(value));
+          }
         }
       });
 
-      const response = await api.put(`/admin/properties/${id}`, formData);
+      console.log("FormData contents:", {
+        hasNewImages: propertyData.images?.length || 0,
+        existingImagesCount: propertyData.existingImages?.length || 0,
+        existingImages: propertyData.existingImages
+      });
+
+      const response = await api.put(`/admin/properties/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
       const updatedProperty = response.data.property || response.data;
 
       set((state) => ({
@@ -268,6 +293,7 @@ const usePropertyStore = create<PropertyState>()((set, get) => ({
         success: "Property updated successfully!",
       }));
     } catch (error: any) {
+      console.error("Update property error:", error);
       set({
         isSubmitting: false,
         error: error.response?.data?.message || error.message || "Failed to update property",

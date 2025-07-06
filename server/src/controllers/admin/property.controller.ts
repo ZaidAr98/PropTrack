@@ -25,26 +25,73 @@ export const addProperty = async (req: MulterRequest, res: Response): Promise<vo
       amenities 
     } = req.body;
     
+    console.log("Add property request:", {
+      hasFiles: req.files?.length || 0,
+      amenities: amenities,
+      amenitiesType: typeof amenities
+    });
+    
     const imageUrls = [];
 
-  
+    // Validate required fields
     if (!title || !description || !price || !type || !location || 
         bedrooms === undefined || bathrooms === undefined || area === undefined) {
       res.status(400).json({ error: "All required fields must be provided" });
       return;
     }
 
-   
+    // Upload images if any
     if (req.files && req.files.length > 0) {
       const imageFiles = req.files as File[];
       
       for (const file of imageFiles) {
-        const imageUrl = await cloudinaryImageUploadMethod(file.buffer);
-        imageUrls.push(imageUrl);
+        try {
+          const imageUrl = await cloudinaryImageUploadMethod(file.buffer);
+          imageUrls.push(imageUrl);
+          console.log("Uploaded image:", imageUrl);
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          // Continue with other images, don't fail completely
+        }
       }
     }
 
- 
+    // Parse amenities properly - handle comma-separated string from frontend
+    let parsedAmenities: string[] = [];
+    if (amenities) {
+      try {
+        if (typeof amenities === 'string') {
+          // Check if it's a JSON string first
+          try {
+            const parsed = JSON.parse(amenities);
+            if (Array.isArray(parsed)) {
+              parsedAmenities = parsed;
+            } else {
+              // If not JSON, split by comma and clean up
+              parsedAmenities = amenities
+                .split(',')
+                .map(item => item.trim())
+                .filter(item => item.length > 0);
+            }
+          } catch {
+            // If not JSON, treat as comma-separated string
+            parsedAmenities = amenities
+              .split(',')
+              .map(item => item.trim())
+              .filter(item => item.length > 0);
+          }
+        } else if (Array.isArray(amenities)) {
+          parsedAmenities = amenities;
+        }
+      } catch (error) {
+        console.error("Error parsing amenities:", error);
+        parsedAmenities = [];
+      }
+    }
+
+    console.log("Parsed amenities:", parsedAmenities);
+
+    // Prepare new property data
     const newProperty = {
       title,
       description,
@@ -54,52 +101,63 @@ export const addProperty = async (req: MulterRequest, res: Response): Promise<vo
       bedrooms: Number(bedrooms), 
       bathrooms: Number(bathrooms),
       area: Number(area),
-      amenities: amenities ? (Array.isArray(amenities) ? amenities : [amenities]) : [], // Handle array or string
+      amenities: parsedAmenities,
       images: imageUrls 
     };
 
+    console.log("Creating property with data:", {
+      ...newProperty,
+      images: `${newProperty.images.length} images`
+    });
     
     const savedProperty = await Property.create(newProperty);
 
+    console.log("Property created successfully:", savedProperty._id);
     
-  res.status(201).json({
+    res.status(201).json({
       success: true,
       message: "Property created successfully",
       property: savedProperty
     });
   } catch (error) {
     console.error("Error adding property:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ 
+      error: "Internal server error",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
-
-
-
 export const editProperty = async (req: MulterRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { 
-      title, 
-      description, 
-      price, 
-      type, 
-      location, 
-      bedrooms, 
-      bathrooms, 
-      area, 
+    const {
+      title,
+      description,
+      price,
+      type,
+      location,
+      bedrooms,
+      bathrooms,
+      area,
       amenities,
-      existingImages 
+      existingImages
     } = req.body;
 
- 
+    console.log("Edit property request:", {
+      id,
+      hasNewFiles: req.files?.length || 0,
+      existingImages: existingImages,
+      existingImagesType: typeof existingImages
+    });
+
     const existingProperty = await Property.findById(id);
     if (!existingProperty) {
       res.status(404).json({ error: "Property not found" });
       return;
     }
 
-    
-    if (!title || !description || !price || !type || !location || 
+    // Validate required fields
+    if (!title || !description || !price || !type || !location ||
         bedrooms === undefined || bathrooms === undefined || area === undefined) {
       res.status(400).json({ error: "All required fields must be provided" });
       return;
@@ -107,37 +165,88 @@ export const editProperty = async (req: MulterRequest, res: Response): Promise<v
 
     let updatedImages: string[] = [];
 
-    
-    if (existingImages && Array.isArray(existingImages)) {
-      updatedImages = [...existingImages];
-    }
-
-    
-    if (req.files && req.files.length > 0) {
-      const imageFiles = req.files as File[];
-      
-      for (const file of imageFiles) {
-        const imageUrl = await cloudinaryImageUploadMethod(file.buffer) as string;
-        updatedImages.push(imageUrl);
+    // Parse existing images - handle both string and array cases
+    if (existingImages) {
+      try {
+        if (typeof existingImages === 'string') {
+          // If it's a JSON string, parse it
+          const parsed = JSON.parse(existingImages);
+          if (Array.isArray(parsed)) {
+            updatedImages = [...parsed];
+          }
+        } else if (Array.isArray(existingImages)) {
+          // If it's already an array, use it directly
+          updatedImages = [...existingImages];
+        }
+      } catch (parseError) {
+        console.error("Error parsing existingImages:", parseError);
+        // If parsing fails, treat as empty array
+        updatedImages = [];
       }
     }
 
- 
+    console.log("Processed existing images:", updatedImages);
+
+    // Upload new images if any
+    if (req.files && req.files.length > 0) {
+      console.log("Processing new image files:", req.files.length);
+      const imageFiles = req.files as File[]; // Changed this line to match addProperty
+      
+      for (const file of imageFiles) {
+        try {
+          const imageUrl = await cloudinaryImageUploadMethod(file.buffer) as string;
+          updatedImages.push(imageUrl);
+          console.log("Uploaded new image:", imageUrl);
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          // Continue with other images, don't fail completely
+        }
+      }
+    }
+
+    console.log("Final images array:", updatedImages);
+
+    // Find images to delete (existed before but not in updated list)
     const imagesToDelete = existingProperty.images.filter(
       (image: string) => !updatedImages.includes(image)
     );
 
+    console.log("Images to delete:", imagesToDelete);
 
+    // Delete removed images from Cloudinary
     if (imagesToDelete.length > 0) {
       try {
         await cloudinaryDeleteImages(imagesToDelete);
+        console.log("Successfully deleted images from Cloudinary");
       } catch (deleteError) {
         console.error("Error deleting images from Cloudinary:", deleteError);
-        
+        // Don't fail the update if image deletion fails
       }
     }
 
-  
+    // Parse amenities properly
+    let parsedAmenities: string[] = [];
+    if (amenities) {
+      try {
+        if (typeof amenities === 'string') {
+          // Try to parse as JSON first
+          try {
+            const parsed = JSON.parse(amenities);
+            parsedAmenities = Array.isArray(parsed) ? parsed : [amenities];
+          } catch {
+            // If not JSON, treat as single amenity
+            parsedAmenities = [amenities];
+          }
+        } else if (Array.isArray(amenities)) {
+          parsedAmenities = amenities;
+        }
+      } catch (error) {
+        console.error("Error parsing amenities:", error);
+        parsedAmenities = [];
+      }
+    }
+
+    // Prepare update data
     const updateData = {
       title,
       description,
@@ -147,24 +256,40 @@ export const editProperty = async (req: MulterRequest, res: Response): Promise<v
       bedrooms: Number(bedrooms),
       bathrooms: Number(bathrooms),
       area: Number(area),
-      amenities: amenities ? (Array.isArray(amenities) ? amenities : [amenities]) : [], // Handle array or string
+      amenities: parsedAmenities,
       images: updatedImages
     };
 
-  
+    console.log("Updating property with data:", {
+      ...updateData,
+      images: `${updateData.images.length} images`
+    });
+
     const updatedProperty = await Property.findByIdAndUpdate(
       id,
       updateData,
       { new: true, runValidators: true }
     );
 
-    res.status(200).json(updatedProperty);
+    if (!updatedProperty) {
+      res.status(404).json({ error: "Property not found after update" });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Property updated successfully",
+      property: updatedProperty
+    });
+
   } catch (error) {
     console.error("Error editing property:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ 
+      error: "Internal server error",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
-
 
 // Archive property
 export const archiveProperty = async (req: Request, res: Response): Promise<void> => {
