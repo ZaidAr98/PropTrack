@@ -18,7 +18,8 @@ router.put('/admin/properties/:id/archive', archiveProperty);
 // Delete property 
 router.delete('/admin/properties/:id', deleteProperty);
 
-
+// Filter properties for admin
+router.get('/admin/properties/search', filterProperties);
 
 //public routes for properties
 // Get all properties 
@@ -27,8 +28,7 @@ router.get('/admin/properties', getProperties);
 // Get single property for admin
 router.get('/admin/properties/:id', getPropertyDetails);
 
-// Filter properties for admin
-router.get('/admin/properties/search', filterProperties);
+
 
 
 

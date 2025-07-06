@@ -10,7 +10,21 @@ export interface AddPropertyRequest {
   amenities?: string | string[]; 
 }
 
-
+export interface PropertyResponse {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  type: PropertyType;
+  location: string;
+  bedrooms: number;
+  bathrooms: number;
+  area: number;
+  amenities: string[];
+  images: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
 export enum PropertyType {
   SALE = "sale",
   RENT = "rent",
